@@ -1,13 +1,15 @@
 "use client"
 import React from "react";
-import { assets} from "@/assets/assets";
+import { assets, BoxIcon,HomeIcon,BagIcon, CartIcon} from "@/assets/assets";
 import Link from "next/link"
 import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
+import { useClerk, UserButton } from "@clerk/nextjs";
 
 const Navbar = () => {
 
-  const { isSeller, router } = useAppContext();
+  const { isSeller, router,user  } = useAppContext();
+  const {openSignIn} = useClerk() ;
 
   return (
     <nav className="flex items-center justify-between px-6 md:px-16 lg:px-32 py-3 border-b border-gray-300 text-gray-700">
@@ -37,10 +39,57 @@ const Navbar = () => {
 
       <ul className="hidden md:flex items-center gap-4 ">
         <Image className="w-4 h-4" src={assets.search_icon} alt="search icon" />
-        <button className="flex items-center gap-2 hover:text-gray-900 transition">
+        { user ?
+        
+        (
+  <div className="flex items-center gap-4">
+    
+    <button 
+      onClick={() => router.push('/')}
+      className="flex items-center gap-2 hover:text-gray-900 transition"
+    >
+      <HomeIcon className="w-6 h-6" />
+    </button>
+
+    <button 
+      onClick={() => router.push('/all-products')}
+      className="flex items-center gap-2 hover:text-gray-900 transition"
+    >
+      <BoxIcon className="w-6 h-6" />
+    </button>
+
+    <button 
+      onClick={() => router.push('/cart')}
+      className="flex items-center gap-2 hover:text-gray-900 transition"
+    >
+      <CartIcon className="w-6 h-6" />
+    </button>
+    
+    <button 
+      onClick={() => router.push('/my-orders')}
+      className="flex items-center gap-2 hover:text-gray-900 transition"
+    >
+      <BagIcon className="w-6 h-6" />
+
+    </button>
+    
+    <UserButton 
+      afterSignOutUrl="/"
+      appearance={{
+        elements: {
+          userButtonAvatarBox: "w-10 h-10",
+        }
+      }}
+    />
+  </div>
+)
+        
+        :(
+        <button onClick={openSignIn} className="flex items-center gap-2 hover:text-gray-900 transition">
           <Image src={assets.user_icon} alt="user icon" />
           Account
         </button>
+        )}
       </ul>
 
       <div className="flex items-center md:hidden gap-3">
