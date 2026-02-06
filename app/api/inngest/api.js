@@ -7,7 +7,7 @@ import {
 } from "@/config/inngest"
 
 // Crée le handler
-export const { GET, POST } = serve({
+export const { GET, POST, PUT } = serve({
     client: inngest,
     functions: [
         syncUserCreation,
