@@ -34,6 +34,18 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.models.User || mongoose.model('User', userSchema)
 
+export async function GET() {
+    console.log("✅ Clerk GET verification request")
+    
+    return Response.json({
+        service: "Clerk Webhook Receiver",
+        status: "active",
+        accepts: ["POST"],
+        url: "https://shop-flow-e-commerce.vercel.app/api/clerk",
+        note: "Send POST requests with Clerk webhook events"
+    })
+}
+
 export async function POST(request) {
     console.log("📨 Clerk webhook received")
     
