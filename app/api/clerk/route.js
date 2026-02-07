@@ -54,13 +54,18 @@ export async function GET() {
 }
 
 export async function POST(request) {
-    console.log("📨 Clerk webhook received sur Vercel")
+   console.log("=".repeat(80))
+    console.log("🌐 GOOGLE OAUTH WEBHOOK RECEIVED")
+    console.log("Time:", new Date().toISOString())
     console.log("Vercel Region:", process.env.VERCEL_REGION)
+    console.log("=".repeat(80))
     
     try {
         const payload = await request.json()
-        console.log("Event type:", payload.type)
-        console.log("User ID:", payload.data?.id)
+        console.log("📦 PAYLOAD TYPE:", payload.type)
+        console.log("👤 USER ID:", payload.data?.id)
+        console.log("📧 EMAIL_ADDRESSES:", JSON.stringify(payload.data?.email_addresses, null, 2))
+        console.log("👤 FIRST/LAST NAME:", payload.data?.first_name, payload.data?.last_name)
         
         if (payload.type === 'user.created') {
             // GESTION AMÉLIORÉE DES EMAILS (pour tests Clerk)
@@ -205,31 +210,40 @@ export async function POST(request) {
 }
 
 // Fonction utilitaire pour extraire l'email
+
+// Dans app/api/clerk/route.js - AMÉLIORÉ
 function extractEmail(userData) {
-    // Essayez différentes méthodes
-    const methods = [
-        // Méthode 1: email_addresses array
-        () => userData.email_addresses?.[0]?.email_address,
-        
-        // Méthode 2: primary_email_address
-        () => userData.primary_email_address,
-        
-        // Méthode 3: email direct
-        () => userData.email,
-        
-        // Méthode 4: username comme email
-        () => userData.username ? `${userData.username}@clerk-user.com` : null,
-        
-        // Méthode 5: ID comme email
-        () => `${userData.id}@clerk-user.com`
-    ]
+    console.log("🔍 Extracting email from:", JSON.stringify(userData, null, 2))
     
-    for (const method of methods) {
-        const email = method()
-        if (email && email.includes('@')) {
-            return email
+    // Méthode 1: Vérifier directement l'email_address
+    if (userData.email_addresses && Array.isArray(userData.email_addresses)) {
+        console.log("📧 Email addresses array found, length:", userData.email_addresses.length)
+        
+        for (const emailObj of userData.email_addresses) {
+            console.log("  - Email object:", emailObj)
+            if (emailObj && emailObj.email_address) {
+                const email = emailObj.email_address
+                console.log("✅ Found email in array:", email)
+                return email
+            }
         }
     }
     
-    return null
+    // Méthode 2: Vérifier primary_email_address
+    if (userData.primary_email_address) {
+        console.log("✅ Found primary_email_address:", userData.primary_email_address)
+        return userData.primary_email_address
+    }
+    
+    // Méthode 3: Vérifier si c'est un test Clerk (email_addresses vide mais primary_email_address_id existe)
+    if (userData.primary_email_address_id && (!userData.email_addresses || userData.email_addresses.length === 0)) {
+        const testEmail = `${userData.id}@clerk-oauth-user.com`
+        console.log("⚠️ Test/OAuth user, using:", testEmail)
+        return testEmail
+    }
+    
+    // Méthode 4: Fallback
+    const fallbackEmail = `user_${userData.id}@${process.env.NODE_ENV === 'production' ? 'yourdomain.com' : 'test.com'}`
+    console.log("⚠️ No email found, using fallback:", fallbackEmail)
+    return fallbackEmail
 }
