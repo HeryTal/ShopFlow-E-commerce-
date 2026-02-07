@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
+  "dev:no-turbo": "cross-env TURBOPACK=0 next dev",
+    "dev:webpack": "cross-env TURBOPACK=0 NEXT_DISABLE_TURBOPACK=true next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "postcss": "^8",

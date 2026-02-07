@@ -1,11 +1,4 @@
-import mongoose from "mongoose"
-
-let cached = global.mongoose
-
-if (!cached) {
-    cached = global.mongoose = { conn: null, promise: null }
-}
-
+// config/db.js - CORRIGÉ
 async function connectDB() {
     console.log("🔍 Tentative connexion MongoDB...")
     
@@ -29,10 +22,9 @@ async function connectDB() {
             serverSelectionTimeoutMS: 10000,
         }
         
-        // Note: Ton URI a déjà le nom de la base? Vérifie si /E-commerce est nécessaire
-        const connectionString = MONGODB_URI.includes('?') 
-            ? MONGODB_URI.replace('?', '/ShopwFlow?') 
-            : `${MONGODB_URI}/ShopwFlow`
+        // VOTRE URI DÉJÀ CONTIENT LE NOM DE LA BASE (shopFlow)
+        // Ne pas ajouter de base supplémentaire
+        const connectionString = MONGODB_URI
         
         console.log(`🔗 Connexion à: ${connectionString.substring(0, 80)}...`)
         
@@ -52,5 +44,3 @@ async function connectDB() {
     cached.conn = await cached.promise
     return cached.conn
 }
-
-export default connectDB

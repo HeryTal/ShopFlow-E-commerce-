@@ -17,18 +17,30 @@ export async function GET() {
         let user = await User.findById(userId);
 
         if (!user) {
-            // If not, create user using Clerk currentUser
-            const clerkUser = await currentUser();
+            // If not, create user using Clerk API
+            const clerkApiUrl = `https://api.clerk.com/v1/users/${userId}`;
+            const response = await fetch(clerkApiUrl, {
+                headers: {
+                    Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+            });
 
-            if (!clerkUser) {
-                return NextResponse.json({ success: false, message: 'Failed to get user from Clerk' }, { status: 500 });
+            if (!response.ok) {
+                console.error('Failed to fetch user from Clerk API:', response.status, response.statusText);
+                return NextResponse.json({ success: false, message: 'Failed to fetch user from Clerk' }, { status: 500 });
             }
+
+            const clerkUser = await response.json();
+            console.log('Clerk user data:', clerkUser);
 
             const userData = {
                 _id: userId,
-                email: clerkUser.emailAddresses?.[0]?.emailAddress || clerkUser.primaryEmailAddressId || 'no-email@example.com',
-                name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || clerkUser.username || 'User',
-                imageUrl: clerkUser.imageUrl || clerkUser.profileImageUrl || '/default-avatar.png',
+                email: clerkUser.email_addresses?.[0]?.email_address || clerkUser.primary_email_address_id || 'no-email@example.com',
+                name: clerkUser.first_name && clerkUser.last_name
+                    ? `${clerkUser.first_name} ${clerkUser.last_name}`.trim()
+                    : clerkUser.username || clerkUser.full_name || 'User',
+                imageUrl: clerkUser.image_url || clerkUser.profile_image_url || '/default-avatar.png',
                 cartItems: {},
             };
 
