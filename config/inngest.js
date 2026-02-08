@@ -15,21 +15,22 @@ export const syncUserCreation = inngest.createFunction(
         name: 'Sync User from Clerk' 
     },
     { event: 'clerk/user.created' },
+
     async({ event }) => {
-        console.log("🔄 Sync création utilisateur:", event.data.id)
+        console.log(" Sync création utilisateur:", event.data.id)
         
         try {
             const { id, first_name, last_name, email_addresses, image_url } = event.data
             
             // Validation
             if (!email_addresses || email_addresses.length === 0) {
-                console.error("❌ Aucun email trouvé")
+                console.error(" Aucun email trouvé")
                 return { success: false, error: "No email" }
             }
             
             const userData = {
                 _id: id,
-                email: email_addresses[0].email_address, // CORRECTION: . pas ,
+                email: email_addresses[0].email_address, 
                 name: `${first_name || ''} ${last_name || ''}`.trim(),
                 imageUrl: image_url || '/default-avatar.png',
                 cartItems: {},
@@ -37,12 +38,12 @@ export const syncUserCreation = inngest.createFunction(
                 updatedAt: new Date()
             }
             
-            console.log("📝 Données utilisateur:", userData)
+            console.log("Données utilisateur:", userData)
             
             await connectDB()
             const user = await User.create(userData)
             
-            console.log("✅ Utilisateur créé:", user._id)
+            console.log(" Utilisateur créé:", user._id)
             return { success: true, userId: id }
             
         } catch (error) {
@@ -82,7 +83,7 @@ export const syncUserUpdate = inngest.createFunction(
     },
     { event: 'clerk/user.updated' },
     async({ event }) => {
-        console.log("🔄 Sync mise à jour utilisateur:", event.data.id)
+        console.log(" Sync mise à jour utilisateur:", event.data.id)
         
         try {
             const { id, first_name, last_name, email_addresses, image_url } = event.data
@@ -125,7 +126,7 @@ export const syncUserDeletion = inngest.createFunction(
     },
     { event: 'clerk/user.deleted' },
     async({ event }) => {
-        console.log("🔄 Sync suppression utilisateur:", event.data.id)
+        console.log(" Sync suppression utilisateur:", event.data.id)
         
         try {
             const { id } = event.data
