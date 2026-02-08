@@ -6,27 +6,27 @@ const HeaderSlider = () => {
   const sliderData = [
     {
       id: 1,
-      title: "Experience Pure Sound - Your Perfect Headphones Awaits!",
-      offer: "Limited Time Offer 30% Off",
-      buttonText1: "Buy now",
-      buttonText2: "Find more",
+      title: "Experience Pure Sound",
+      subtitle: "Your Perfect Headphones Awaits!",
+      offer: "30% Off Limited Time",
       imgSrc: assets.header_headphone_image,
+      color: "blue"
     },
     {
       id: 2,
-      title: "Next-Level Gaming Starts Here - Discover PlayStation 5 Today!",
-      offer: "Hurry up only few lefts!",
-      buttonText1: "Shop Now",
-      buttonText2: "Explore Deals",
+      title: "Next-Level Gaming",
+      subtitle: "Discover PlayStation 5 Today!",
+      offer: "Few Units Left",
       imgSrc: assets.header_playstation_image,
+      color: "purple"
     },
     {
       id: 3,
-      title: "Power Meets Elegance - Apple MacBook Pro is Here for you!",
-      offer: "Exclusive Deal 40% Off",
-      buttonText1: "Order Now",
-      buttonText2: "Learn More",
+      title: "Power Meets Elegance",
+      subtitle: "Apple MacBook Pro is Here",
+      offer: "40% Off Exclusive",
       imgSrc: assets.header_macbook_image,
+      color: "cyan"
     },
   ];
 
@@ -35,62 +35,103 @@ const HeaderSlider = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderData.length);
-    }, 3000);
+    }, 4000);
     return () => clearInterval(interval);
   }, [sliderData.length]);
 
-  const handleSlideChange = (index) => {
-    setCurrentSlide(index);
+  const getColorClasses = (color) => {
+    switch(color) {
+      case 'blue': return {
+        bg: 'from-blue-50 to-white',
+        text: 'text-blue-600',
+        border: 'border-blue-200',
+        button: 'bg-blue-600 hover:bg-blue-700'
+      };
+      case 'purple': return {
+        bg: 'from-purple-50 to-white',
+        text: 'text-purple-600',
+        border: 'border-purple-200',
+        button: 'bg-purple-600 hover:bg-purple-700'
+      };
+      default: return {
+        bg: 'from-cyan-50 to-white',
+        text: 'text-cyan-600',
+        border: 'border-cyan-200',
+        button: 'bg-cyan-600 hover:bg-cyan-700'
+      };
+    }
   };
 
+  const colors = getColorClasses(sliderData[currentSlide].color);
+
   return (
-    <div className="overflow-hidden relative w-full">
-      <div
-        className="flex transition-transform duration-700 ease-in-out"
-        style={{
-          transform: `translateX(-${currentSlide * 100}%)`,
-        }}
-      >
-        {sliderData.map((slide, index) => (
-          <div
-            key={slide.id}
-            className="flex flex-col-reverse md:flex-row items-center justify-between bg-[#E6E9F2] py-8 md:px-14 px-5 mt-6 rounded-xl min-w-full"
-          >
-            <div className="md:pl-8 mt-10 md:mt-0">
-              <p className="md:text-base text-orange-600 pb-1">{slide.offer}</p>
-              <h1 className="max-w-lg md:text-[40px] md:leading-[48px] text-2xl font-semibold">
-                {slide.title}
-              </h1>
-              <div className="flex items-center mt-4 md:mt-6 ">
-                <button className="md:px-10 px-7 md:py-2.5 py-2 bg-orange-600 rounded-full text-white font-medium">
-                  {slide.buttonText1}
-                </button>
-                <button className="group flex items-center gap-2 px-6 py-2.5 font-medium">
-                  {slide.buttonText2}
-                  <Image className="group-hover:translate-x-1 transition" src={assets.arrow_icon} alt="arrow_icon" />
-                </button>
+    <div className="relative w-full overflow-hidden rounded-3xl bg-white shadow-lg border border-slate-200">
+      <div className="relative h-[500px] md:h-[550px]">
+        <div 
+          className="flex transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {sliderData.map((slide, index) => {
+            const slideColors = getColorClasses(slide.color);
+            return (
+              <div key={slide.id} className="min-w-full">
+                <div className={`h-full bg-gradient-to-br ${slideColors.bg} flex flex-col md:flex-row items-center justify-between px-6 md:px-12 lg:px-16`}>
+                  
+                  {/* Text Content */}
+                  <div className="md:w-1/2 pt-10 md:pt-0">
+                    <div className={`inline-block px-3 py-1 ${slideColors.border} border rounded-full mb-6`}>
+                      <span className={`text-sm font-medium ${slideColors.text}`}>
+                        {slide.offer}
+                      </span>
+                    </div>
+                    
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
+                      {slide.title}
+                      <br />
+                      <span className={slideColors.text}>{slide.subtitle}</span>
+                    </h1>
+                    
+                    <div className="flex gap-4 mt-8">
+                      <button className={`px-8 py-3 ${slideColors.button} text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium`}>
+                        Shop Now
+                      </button>
+                      <button className="px-8 py-3 border-2 border-slate-300 text-slate-700 rounded-lg hover:border-slate-400 hover:bg-slate-50 transition-colors duration-300 font-medium">
+                        Learn More
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Image */}
+                  <div className="md:w-1/2 flex justify-center">
+                    <div className="relative">
+                      <Image
+                        className="w-full max-w-md object-contain transform hover:scale-105 transition-transform duration-500"
+                        src={slide.imgSrc}
+                        alt={slide.title}
+                        width={600}
+                        height={400}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center flex-1 justify-center">
-              <Image
-                className="md:w-72 w-48"
-                src={slide.imgSrc}
-                alt={`Slide ${index + 1}`}
-              />
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
 
-      <div className="flex items-center justify-center gap-2 mt-8">
+      {/* Navigation Dots */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
         {sliderData.map((_, index) => (
-          <div
+          <button
             key={index}
-            onClick={() => handleSlideChange(index)}
-            className={`h-2 w-2 rounded-full cursor-pointer ${
-              currentSlide === index ? "bg-orange-600" : "bg-gray-500/30"
+            onClick={() => setCurrentSlide(index)}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              currentSlide === index 
+                ? `${colors.button.replace('bg-', 'bg-').replace('hover:bg-', '')} w-6` 
+                : 'bg-slate-300'
             }`}
-          ></div>
+          />
         ))}
       </div>
     </div>
