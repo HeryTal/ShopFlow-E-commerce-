@@ -1,43 +1,46 @@
 import React from 'react';
 import Link from 'next/link';
-import { assets } from '../../assets/assets';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { 
+  PlusCircle,
+  List,
+  Package
+} from "lucide-react";
 
 const SideBar = () => {
-    const pathname = usePathname()
+    const pathname = usePathname();
+    
     const menuItems = [
-        { name: 'Add Product', path: '/seller', icon: assets.add_icon },
-        { name: 'Product List', path: '/seller/product-list', icon: assets.product_list_icon },
-        { name: 'Orders', path: '/seller/orders', icon: assets.order_icon },
+        { name: 'Add Product', path: '/seller', icon: PlusCircle },
+        { name: 'Product List', path: '/seller/product-list', icon: List },
+        { name: 'Orders', path: '/seller/orders', icon: Package },
     ];
 
     return (
-        <div className='md:w-64 w-16 border-r min-h-screen text-base border-gray-300 py-2 flex flex-col'>
-            {menuItems.map((item) => {
-
-                const isActive = pathname === item.path;
-
-                return (
-                    <Link href={item.path} key={item.name} passHref>
-                        <div
-                            className={
-                                `flex items-center py-3 px-4 gap-3 ${isActive
-                                    ? "border-r-4 md:border-r-[6px] bg-orange-600/10 border-orange-500/90"
-                                    : "hover:bg-gray-100/90 border-white"
-                                }`
-                            }
-                        >
-                            <Image
-                                src={item.icon}
-                                alt={`${item.name.toLowerCase()}_icon`}
-                                className="w-7 h-7"
-                            />
-                            <p className='md:block hidden text-center'>{item.name}</p>
-                        </div>
-                    </Link>
-                );
-            })}
+        <div className='md:w-64 w-20 min-h-screen bg-white border-r border-slate-200 py-6'>
+            <div className="space-y-1">
+                {menuItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.path;
+                    
+                    return (
+                        <Link href={item.path} key={item.name} passHref>
+                            <div className={`
+                                flex items-center gap-3 p-3 mx-2 rounded-lg transition-all duration-200
+                                ${isActive 
+                                    ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md' 
+                                    : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                                }
+                            `}>
+                                <Icon className="w-5 h-5" />
+                                <span className="hidden md:block font-medium text-sm">
+                                    {item.name}
+                                </span>
+                            </div>
+                        </Link>
+                    );
+                })}
+            </div>
         </div>
     );
 };
