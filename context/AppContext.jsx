@@ -33,9 +33,14 @@ export const AppContextProvider = (props) => {
                 setIsSeller(true)
             }
 
+            const token = await getToken();
+            const {data} = await axios.get('/api/user/data', {
+                headers:{ Authorization: `Bearer ${token}` }
+            })
+
             // Fetch user data from API
             const response = await fetch('/api/user');
-            const data = await response.json();
+            
 
             if (data.success) {
                 setUserData(data.user);
@@ -116,7 +121,7 @@ export const AppContextProvider = (props) => {
         addToCart, updateCartQuantity,
         getCartCount, getCartAmount
     }
-
+ 
     return (
         <AppContext.Provider value={value}>
             {props.children}

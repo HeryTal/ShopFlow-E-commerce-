@@ -10,7 +10,7 @@ export async function GET(request) {
     await connectDB();
     const user = await User.findById(userId);
     if (!user) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
+        return NextResponse.json({ error: "User not found" }, message:{ status: 404 });
     }
     return NextResponse.json({ user }, { status: 200 });
 } catch (error) {
@@ -18,4 +18,3 @@ export async function GET(request) {
     return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });   
 }
 }
-
