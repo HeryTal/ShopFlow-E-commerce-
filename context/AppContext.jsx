@@ -3,6 +3,7 @@ import { productsDummyData, userDummyData } from "@/assets/assets";
 import { useRouter } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { createContext, useContext, useEffect, useState } from "react";
+import axios from "axios";
 
 export const AppContext = createContext();
 
@@ -29,17 +30,13 @@ export const AppContextProvider = (props) => {
 
     const fetchUserData = async () => {
         try {
-            if (user.publicMetadata.role === 'seller') {
+            if (user?.publicMetadata?.role === 'seller') {
                 setIsSeller(true)
             }
 
             const token = await getToken();
-            const {data} = await axios.get('/api/user/data', {
-                headers:{ Authorization: `Bearer ${token}` }
-            })
-
-            // Fetch user data from API
-            const response = await fetch('/api/user');
+            const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+            const {data} = await axios.get('/api/user/data', { headers })
             
 
             if (data.success) {

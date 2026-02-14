@@ -7,8 +7,8 @@ app.use(express.json())
 
 // Connexion MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB connecté'))
-  .catch(err => console.error('❌ MongoDB erreur:', err))
+  .then(() => console.log(' MongoDB connecté'))
+  .catch(err => console.error(' MongoDB erreur:', err))
 
 // Modèle User
 const userSchema = new mongoose.Schema({

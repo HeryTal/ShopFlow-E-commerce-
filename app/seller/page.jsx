@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { assets } from "@/assets/assets";
 import Image from "next/image";
+import axios from "axios";
 
 // Import des icônes Lucide React
 import { 
@@ -17,6 +18,7 @@ import {
   Info,
   AlertCircle
 } from "lucide-react";
+import { useAppContext } from "@/context/AppContext";
 
 const AddProduct = () => {
   const [files, setFiles] = useState([]);
@@ -29,6 +31,7 @@ const AddProduct = () => {
   const [brand, setBrand] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const {getToken} = useAppContext ();
 
   const categories = [
     { value: "Earphone", label: "Earphone", icon: "🎧" },
@@ -89,6 +92,36 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    formData.append('category', category);
+    formData.append('price', price);
+    formData.append('offerPrice', offerPrice);
+
+    files.forEach((file, index) => {
+      if (file) {
+        formData.append('images', file);
+      }
+    });
+
+    try {
+      const token = await getToken();
+      const {data} = await axios.post('/api/product/add', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${await getToken()}`
+      }
+    })
+    }
+    catch (error) {
+      console.error("Error adding product:", error.response ? error.response.data : error.message);
+      alert("Failed to add product. Please try again.");
+
+    }
+
+
     
     if (!validateForm()) return;
     
