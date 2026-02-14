@@ -1,10 +1,9 @@
-import { auth } from "@clerk/nextjs/server"
+import { auth, currentUser } from "@clerk/nextjs/server"
 import connectDB from "@/config/db";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
-    
     try {
         if (process.env.NODE_ENV !== "production") {
             const pk = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "";
@@ -14,38 +13,7 @@ export async function GET(request) {
             const cookieNames = cookiePairs
                 .map((c) => c.split("=")[0])
                 .filter(Boolean);
-            const cookieMap = Object.fromEntries(
-                cookiePairs
-                    .map((c) => {
-                        const idx = c.indexOf("=");
-                        if (idx === -1) return null;
-                        return [c.slice(0, idx), c.slice(idx + 1)];
-                    })
-                    .filter(Boolean)
-            );
-            let sessionToken = cookieMap.__session || "";
-            if (!sessionToken) {
-                const sessionKey = Object.keys(cookieMap).find((k) =>
-                    k.startsWith("__session_")
-                );
-                if (sessionKey) sessionToken = cookieMap[sessionKey];
-            }
-            let tokenIss;
-            let tokenExp;
-            if (sessionToken) {
-                const parts = sessionToken.split(".");
-                if (parts.length >= 2) {
-                    try {
-                        const payload = JSON.parse(
-                            Buffer.from(parts[1], "base64url").toString("utf8")
-                        );
-                        tokenIss = payload?.iss;
-                        tokenExp = payload?.exp
-                            ? new Date(payload.exp * 1000).toISOString()
-                            : undefined;
-                    } catch {}
-                }
-            }
+
             console.log("Clerk auth debug:", {
                 pkPrefix: pk.slice(0, 8),
                 pkSuffix: pk.slice(-4),
@@ -55,24 +23,75 @@ export async function GET(request) {
                 skLen: sk.length,
                 hasCookie: cookieHeader.length > 0,
                 cookieNames,
-                tokenIss,
-                tokenExp,
                 host: request.headers.get("host"),
                 referer: request.headers.get("referer"),
             });
         }
-        const { userId } = auth();
+
+        const { userId, sessionClaims } = await auth();
         if (!userId) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
-    await connectDB();
-    const user = await User.findOne({ clerkId: userId });
-    if (!user) {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+        await connectDB();
+
+        let user = await User.findOne({ clerkId: userId });
+        const clerkUser = await currentUser();
+        const resolvedRole =
+            clerkUser?.publicMetadata?.role ||
+            sessionClaims?.metadata?.role ||
+            sessionClaims?.public_metadata?.role ||
+            user?.role ||
+            "user";
+
+        // Backward compatibility: older records may have a string _id equal to clerk user id.
+        // Use the native collection to avoid Mongoose ObjectId casting errors.
+        if (!user) {
+            const legacyUser = await User.collection.findOne({ _id: userId });
+            if (legacyUser) {
+                await User.collection.updateOne(
+                    { _id: userId },
+                    { $set: { clerkId: userId } }
+                );
+                user = await User.findOne({ clerkId: userId });
+            }
+        }
+
+        if (!user) {
+            const primaryEmail =
+                clerkUser?.emailAddresses?.find((email) => email.id === clerkUser.primaryEmailAddressId)?.emailAddress ||
+                clerkUser?.emailAddresses?.[0]?.emailAddress ||
+                sessionClaims?.email ||
+                `${userId}@clerk.local`;
+            const displayName =
+                [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") ||
+                sessionClaims?.fullName ||
+                sessionClaims?.username ||
+                primaryEmail.split("@")[0] ||
+                "User";
+            const imageUrl = clerkUser?.imageUrl || "/default-avatar.png";
+
+            user = await User.findOneAndUpdate(
+                { $or: [{ clerkId: userId }, { email: primaryEmail }] },
+                {
+                    clerkId: userId,
+                    email: primaryEmail,
+                    name: displayName,
+                    imageUrl,
+                    role: resolvedRole,
+                },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            );
+        }
+        
+        if (user && user.role !== resolvedRole) {
+            user.role = resolvedRole;
+            await user.save();
+        }
+
+        return NextResponse.json({ success: true, user }, { status: 200 });
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return NextResponse.json({ success: false, message: "Failed to fetch user" }, { status: 500 });
     }
-    return NextResponse.json({ user }, { status: 200 });
-} catch (error) {
-    console.error("Error fetching user:", error);
-    return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });   
-}
 }

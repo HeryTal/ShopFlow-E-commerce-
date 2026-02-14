@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    _id:{type:String, required:true},
+    clerkId: { type: String, required: true, unique: true, index: true },
     email: { type: String, required: true, unique: true },
     name: { type: String, required: true },
-    imageUrl: { type: String, required: true },
-    cartItems:{ type: Object, default: {} },
-   
-},{minimize:false});
+    imageUrl: { type: String, default: "/default-avatar.png" },
+    role: { type: String, default: "user" },
+    cartItems: { type: Object, default: {} },
+}, { minimize: false, timestamps: true });
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 

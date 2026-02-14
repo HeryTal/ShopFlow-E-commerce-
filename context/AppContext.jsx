@@ -1,5 +1,5 @@
 'use client'
-import { productsDummyData, userDummyData } from "@/assets/assets";
+import { productsDummyData } from "@/assets/assets";
 import { useRouter } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -30,25 +30,28 @@ export const AppContextProvider = (props) => {
 
     const fetchUserData = async () => {
         try {
-            if (user?.publicMetadata?.role === 'seller') {
-                setIsSeller(true)
-            }
+            const sellerFromClerk = user?.publicMetadata?.role === 'seller';
+            setIsSeller(sellerFromClerk);
 
             const token = await getToken();
             const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-            const {data} = await axios.get('/api/user/data', { headers })
+            const { data } = await axios.get('/api/user/data', { headers })
             
 
             if (data.success) {
                 setUserData(data.user);
                 setCartItems(data.user.cartItems || {});
+                const sellerFromDb = data.user?.role === 'seller';
+                setIsSeller(sellerFromClerk || sellerFromDb);
             } else {
                 console.error("Erreur récupération données utilisateur:", data.message);
                 setUserData(null);
+                setIsSeller(sellerFromClerk);
             }
         } catch (error) {
             console.error("Erreur récupération données utilisateur:", error.message);
             setUserData(null);
+            setIsSeller(user?.publicMetadata?.role === 'seller');
         }
     }
 
