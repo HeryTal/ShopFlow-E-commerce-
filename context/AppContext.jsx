@@ -25,7 +25,19 @@ export const AppContextProvider = (props) => {
     const [cartItems, setCartItems] = useState({})
 
     const fetchProductData = async () => {
-        setProducts(productsDummyData)
+        try {
+            const {data} = await axios.get("/api/product/list");
+            if (data.success) {
+                setProducts(data.products);
+            } else {
+                console.error("Erreur recuperation produits:", data.message);
+                setProducts(productsDummyData);
+            }
+        }
+        catch (error) {
+            console.error("Erreur lors de la récupération des produits:", error);
+            setProducts(productsDummyData);
+        }
     }
 
     const fetchUserData = async () => {

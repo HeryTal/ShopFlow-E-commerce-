@@ -7,9 +7,18 @@ const ProductCard = ({ product }) => {
     const { currency, router } = useAppContext();
     const [isWishlisted, setIsWishlisted] = useState(false);
 
+    const productImages = Array.isArray(product?.images)
+        ? product.images
+        : Array.isArray(product?.image)
+            ? product.image
+            : [];
+    const primaryImage = productImages[0] || assets.upload_area;
+    const basePrice = Number(product?.originalPrice ?? product?.price ?? 0);
+    const offerPrice = Number(product?.offerPrice ?? 0);
+
     const rating = 4.5;
-    const discountPercentage = product.originalPrice 
-        ? Math.round(((product.originalPrice - product.offerPrice) / product.originalPrice) * 100)
+    const discountPercentage = basePrice > 0
+        ? Math.round(((basePrice - offerPrice) / basePrice) * 100)
         : 0;
 
     return (
@@ -48,7 +57,7 @@ const ProductCard = ({ product }) => {
             {/* Product Image */}
             <div className="relative h-56 bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
                 <Image
-                    src={product.image[0]}
+                    src={primaryImage}
                     alt={product.name}
                     className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500"
                     width={300}
@@ -89,11 +98,11 @@ const ProductCard = ({ product }) => {
                 <div className="flex items-center justify-between">
                     <div>
                         <span className="text-xl font-bold text-blue-900">
-                            {currency}{product.offerPrice}
+                            {currency}{offerPrice}
                         </span>
-                        {product.originalPrice && (
+                        {basePrice > 0 && (
                             <span className="text-sm text-slate-400 line-through ml-2">
-                                {currency}{product.originalPrice}
+                                {currency}{basePrice}
                             </span>
                         )}
                     </div>

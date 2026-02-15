@@ -1,10 +1,11 @@
 'use client'
-import React, { useEffect, useState } from "react";
-import { assets, productsDummyData } from "@/assets/assets";
+import React, { useEffect, useMemo, useState } from "react";
+import { assets } from "@/assets/assets";
 import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import Footer from "@/components/seller/Footer";
 import Loading from "@/components/Loading";
+import axios from "axios";
 
 // Import des icônes Lucide React
 import { 
@@ -21,56 +22,77 @@ import {
   Tag,
   Grid,
   List,
-  ChevronDown,
-  Download,
   AlertCircle
 } from "lucide-react";
 
 const ProductList = () => {
-  const { router, currency } = useAppContext();
+  const { router, getToken, user, currency } = useAppContext();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [viewMode, setViewMode] = useState("grid");
-  const [sortBy, setSortBy] = useState("newest");
+  const categories = useMemo(() => {
+    const byCategory = products.reduce((acc, product) => {
+      const category = product.category || "Uncategorized";
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {});
 
-  const categories = [
-    { id: "all", label: "All Categories", count: productsDummyData.length },
-    { id: "electronics", label: "Electronics", count: 4 },
-    { id: "audio", label: "Audio", count: 3 },
-    { id: "gaming", label: "Gaming", count: 2 },
-    { id: "computers", label: "Computers", count: 3 },
-    { id: "accessories", label: "Accessories", count: 2 },
-  ];
+    return [
+      { id: "all", label: "All Categories", count: products.length },
+      ...Object.entries(byCategory).map(([id, count]) => ({ id, label: id, count })),
+    ];
+  }, [products]);
 
   const fetchSellerProduct = async () => {
-    // Simulate API call
-    setTimeout(() => {
-      const productsWithStats = productsDummyData.map((product, index) => ({
-        ...product,
-        id: `PROD-${Date.now() + index}`,
-        stock: Math.floor(Math.random() * 100) + 10,
-        sales: Math.floor(Math.random() * 500),
-        rating: (Math.random() * 2 + 3).toFixed(1), // 3.0 - 5.0
-        lastUpdated: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-        status: index % 5 === 0 ? "draft" : "published",
-      }));
-      setProducts(productsWithStats);
+    setLoading(true);
+    try {
+    const token = await getToken();
+    const {data} = await axios.get('/api/product/seller-list', {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+    });
+
+    if (data.success) {
+        const normalizedProducts = (data.products || []).map((product) => ({
+          ...product,
+          id: product._id,
+          price: Number(product.price || 0),
+          offerPrice: Number(product.offerPrice || 0),
+          stock: Number(product.stock || 0),
+          sales: Number(product.sales || 0),
+          rating: Number(product.rating || 0),
+          status: product.status || (Number(product.stock || 0) === 0 ? "out_of_stock" : "published"),
+          lastUpdated: product.lastUpdated || product.updatedAt || product.createdAt || new Date().toISOString(),
+        }));
+
+        setProducts(normalizedProducts);
+
+    } else {
+        console.error("Erreur recuperation produits vendeur:", data.message);
+        setProducts([]);
+    }
+}
+    catch (error) {
+      console.error("Erreur recuperation produits vendeur:", error?.message);
+      setProducts([]);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   useEffect(() => {
-    fetchSellerProduct();
-  }, []);
+    if (user) {
+      fetchSellerProduct();
+    }
+  }, [user]);
 
   const filteredProducts = products.filter(product => {
     const matchesCategory = filterCategory === "all" || product.category === filterCategory;
     const matchesSearch = !searchQuery || 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      (product.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.description || "").toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -95,12 +117,14 @@ const ProductList = () => {
     if (selectedProducts.length === filteredProducts.length) {
       setSelectedProducts([]);
     } else {
-      setSelectedProducts(filteredProducts.map(product => product.id));
+      setSelectedProducts(filteredProducts.map(product => product._id));
     }
   };
 
   const getTotalValue = () => {
-    return filteredProducts.reduce((sum, product) => sum + (product.offerPrice * product.stock), 0);
+    return filteredProducts.reduce((sum, product) => {
+      return sum + (Number(product.offerPrice || 0) * Number(product.stock || 0));
+    }, 0);
   };
 
   const getLowStockProducts = () => {
@@ -127,7 +151,7 @@ const ProductList = () => {
           
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => router.push('/seller/add-product')}
+              onClick={() => router.push('/seller')}
               className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-lg hover:from-blue-800 hover:to-blue-600 hover:shadow-lg transition-all font-semibold"
             >
               <Plus className="w-4 h-4" />
@@ -173,7 +197,7 @@ const ProductList = () => {
               <Star className="w-5 h-5 text-purple-600" />
             </div>
             <div className="text-3xl font-bold text-purple-700">
-              {(filteredProducts.reduce((sum, p) => sum + parseFloat(p.rating), 0) / filteredProducts.length || 0).toFixed(1)}
+              {(filteredProducts.reduce((sum, p) => sum + Number(p.rating || 0), 0) / filteredProducts.length || 0).toFixed(1)}
             </div>
             <div className="text-sm text-slate-500 mt-2">Customer satisfaction</div>
           </div>
@@ -268,7 +292,7 @@ const ProductList = () => {
               <h3 className="text-lg font-medium text-slate-900 mb-2">No products found</h3>
               <p className="text-slate-600 mb-6">Try adjusting your search or filter criteria</p>
               <button 
-                onClick={() => router.push('/seller/add-product')}
+                onClick={() => router.push('/seller')}
                 className="px-6 py-2.5 bg-gradient-to-r from-blue-900 to-blue-700 text-white rounded-lg hover:from-blue-800 hover:to-blue-600 transition-all font-semibold"
               >
                 Add Your First Product
@@ -278,15 +302,15 @@ const ProductList = () => {
             // Grid View
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
               {filteredProducts.map((product) => (
-                <div key={product.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+                <div key={product._id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="p-4">
                     {/* Product Header */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
-                          checked={selectedProducts.includes(product.id)}
-                          onChange={() => handleSelectProduct(product.id)}
+                          checked={selectedProducts.includes(product._id)}
+                          onChange={() => handleSelectProduct(product._id)}
                           className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
                         />
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(product.status)}`}>
@@ -301,7 +325,7 @@ const ProductList = () => {
                     {/* Product Image */}
                     <div className="w-full h-48 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg mb-4 p-4 flex items-center justify-center">
                       <Image
-                        src={product.image[0]}
+                        src={product.images?.[0] || assets.upload_area}
                         alt={product.name}
                         className="w-full h-full object-contain"
                         width={300}
@@ -364,7 +388,7 @@ const ProductList = () => {
             // List View
             <div className="divide-y divide-slate-200">
               {filteredProducts.map((product) => (
-                <div key={product.id} className="p-6 hover:bg-slate-50/50 transition-colors">
+                <div key={product._id} className="p-6 hover:bg-slate-50/50 transition-colors">
                   <div className="flex flex-col md:flex-row gap-6">
                     {/* Product Info */}
                     <div className="flex-1">
@@ -372,14 +396,14 @@ const ProductList = () => {
                         <div className="flex items-center gap-4">
                           <input
                             type="checkbox"
-                            checked={selectedProducts.includes(product.id)}
-                            onChange={() => handleSelectProduct(product.id)}
+                            checked={selectedProducts.includes(product._id)}
+                            onChange={() => handleSelectProduct(product._id)}
                             className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
                           />
                           <div className="flex items-center gap-3">
                             <div className="w-16 h-16 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg p-2 flex items-center justify-center">
                               <Image
-                                src={product.image[0]}
+                                src={product.images?.[0] || assets.upload_area}
                                 alt={product.name}
                                 className="w-full h-full object-contain"
                                 width={64}
