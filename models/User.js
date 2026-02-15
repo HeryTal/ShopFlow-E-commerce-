@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     imageUrl: { type: String, default: "/default-avatar.png" },
-    role: { type: String, default: "user" },
+    role: { type: String, default: "seller" },
     cartItems: { type: Object, default: {} },
 }, { minimize: false, timestamps: true });
 

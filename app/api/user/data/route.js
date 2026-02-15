@@ -37,12 +37,7 @@ export async function GET(request) {
 
         let user = await User.findOne({ clerkId: userId });
         const clerkUser = await currentUser();
-        const resolvedRole =
-            clerkUser?.publicMetadata?.role ||
-            sessionClaims?.metadata?.role ||
-            sessionClaims?.public_metadata?.role ||
-            user?.role ||
-            "user";
+        const resolvedRole = "seller";
 
         // Backward compatibility: older records may have a string _id equal to clerk user id.
         // Use the native collection to avoid Mongoose ObjectId casting errors.

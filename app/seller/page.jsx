@@ -113,7 +113,7 @@ const AddProduct = () => {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${await getToken()}`
       }
-    })
+    }) 
     }
     catch (error) {
       console.error("Error adding product:", error.response ? error.response.data : error.message);

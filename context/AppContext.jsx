@@ -16,8 +16,8 @@ export const AppContextProvider = (props) => {
     const currency = process.env.NEXT_PUBLIC_CURRENCY
     const router = useRouter()
 
-    const {user} = useUser();
-    const {getToken} = useAuth();
+    const { user } = useUser();
+    const { getToken } = useAuth();
 
     const [products, setProducts] = useState([])
     const [userData, setUserData] = useState(false)
@@ -30,29 +30,41 @@ export const AppContextProvider = (props) => {
 
     const fetchUserData = async () => {
         try {
-            const sellerFromClerk = user?.publicMetadata?.role === 'seller';
+            const sellerFromClerk = Boolean(user?.id);
             setIsSeller(sellerFromClerk);
 
             const token = await getToken();
             const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
             const { data } = await axios.get('/api/user/data', { headers })
-            
 
             if (data.success) {
                 setUserData(data.user);
                 setCartItems(data.user.cartItems || {});
-                const sellerFromDb = data.user?.role === 'seller';
-                setIsSeller(sellerFromClerk || sellerFromDb);
+                setIsSeller(true);
             } else {
-                console.error("Erreur récupération données utilisateur:", data.message);
+                console.error("Erreur recuperation donnees utilisateur:", data.message);
                 setUserData(null);
                 setIsSeller(sellerFromClerk);
             }
         } catch (error) {
-            console.error("Erreur récupération données utilisateur:", error.message);
+            console.error("Erreur recuperation donnees utilisateur:", error.message);
             setUserData(null);
-            setIsSeller(user?.publicMetadata?.role === 'seller');
+            setIsSeller(Boolean(user?.id));
         }
+    }
+
+    const promoteToSeller = async () => {
+        const token = await getToken();
+        const headers = {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        };
+        const { data } = await axios.post("/api/user/role", { role: "seller" }, { headers });
+        if (data?.success) {
+            setIsSeller(true);
+            await fetchUserData();
+        }
+        return data;
     }
 
     const addToCart = async (itemId) => {
@@ -106,22 +118,26 @@ export const AppContextProvider = (props) => {
     }, [])
 
     useEffect(() => {
-        if (user) {
+        if (user?.id) {
             fetchUserData()
+        } else {
+            setUserData(false)
+            setIsSeller(false)
         }
-    }, [user])
+    }, [user?.id])
 
     const value = {
-        user,getToken,
+        user, getToken,
         currency, router,
         isSeller, setIsSeller,
         userData, fetchUserData,
+        promoteToSeller,
         products, fetchProductData,
         cartItems, setCartItems,
         addToCart, updateCartQuantity,
         getCartCount, getCartAmount
     }
- 
+
     return (
         <AppContext.Provider value={value}>
             {props.children}
