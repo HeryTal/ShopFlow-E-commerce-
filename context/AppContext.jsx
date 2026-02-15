@@ -89,6 +89,20 @@ export const AppContextProvider = (props) => {
             cartData[itemId] = 1;
         }
         setCartItems(cartData);
+        console.log("Produit ajouté au panier");
+
+        if (user){
+            try {
+                const token = await getToken();
+                const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+                const response = await axios.post("/api/cart/update", { cartData }, { headers });
+                if (!response.data.success) {
+                    console.error("Erreur mise à jour panier");
+                }
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour du panier");
+            }
+        }
 
     }
 
@@ -97,10 +111,22 @@ export const AppContextProvider = (props) => {
         let cartData = structuredClone(cartItems);
         if (quantity === 0) {
             delete cartData[itemId];
-        } else {
+        }  else {
             cartData[itemId] = quantity;
         }
         setCartItems(cartData)
+        if (user){
+            try {
+                const token = await getToken();
+                const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+                const response = await axios.post("/api/cart/update", { cartData }, { headers });
+                if (!response.data.success) {
+                    console.error("Erreur mise à jour quantité");
+                }
+            } catch (error) {
+                console.error("Erreur lors de la mise à jour du panier");
+            }
+        } 
 
     }
 

@@ -40,8 +40,13 @@ const Product = () => {
     const fetchProductData = async () => {
         const product = products.find(product => product._id === id);
         if (product) {
+            const normalizedImages = Array.isArray(product.images)
+                ? product.images
+                : Array.isArray(product.image)
+                    ? product.image
+                    : [];
             setProductData(product);
-            setMainImage(product.image[0]);
+            setMainImage(normalizedImages[0] || assets.upload_area);
             setSelectedSize("M");
             setSelectedColor(colors[0]);
         }
@@ -70,6 +75,12 @@ const Product = () => {
 
     if (!productData) return <Loading />;
 
+    const productImages = Array.isArray(productData.images)
+        ? productData.images
+        : Array.isArray(productData.image)
+            ? productData.image
+            : [];
+    const primaryImage = mainImage || productImages[0] || assets.upload_area;
     const discount = calculateDiscount();
 
     return (
@@ -135,7 +146,7 @@ const Product = () => {
                                 
                                 <div className="relative h-80 md:h-96">
                                     <Image
-                                        src={mainImage || productData.image[0]}
+                                        src={primaryImage}
                                         alt={productData.name}
                                         className="w-full h-full object-contain transform group-hover:scale-105 transition-transform duration-500"
                                         width={600}
@@ -147,25 +158,31 @@ const Product = () => {
 
                             {/* Thumbnail Images */}
                             <div className="grid grid-cols-4 gap-3">
-                                {productData.image.map((image, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setMainImage(image)}
-                                        className={`relative rounded-xl border-2 overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-3 transition-all duration-300 ${
-                                            mainImage === image 
-                                                ? 'border-blue-500 ring-2 ring-blue-500/20' 
-                                                : 'border-slate-200 hover:border-blue-300'
-                                        }`}
-                                    >
-                                        <Image
-                                            src={image}
-                                            alt={`${productData.name} thumbnail ${index + 1}`}
-                                            className="w-full h-16 object-contain"
-                                            width={100}
-                                            height={100}
-                                        />
-                                    </button>
-                                ))}
+                                {productImages.length > 0 ? (
+                                    productImages.map((image, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => setMainImage(image)}
+                                            className={`relative rounded-xl border-2 overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 p-3 transition-all duration-300 ${
+                                                primaryImage === image
+                                                    ? 'border-blue-500 ring-2 ring-blue-500/20'
+                                                    : 'border-slate-200 hover:border-blue-300'
+                                            }`}
+                                        >
+                                            <Image
+                                                src={image}
+                                                alt={`${productData.name} thumbnail ${index + 1}`}
+                                                className="w-full h-16 object-contain"
+                                                width={100}
+                                                height={100}
+                                            />
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="col-span-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-500">
+                                        No additional images
+                                    </div>
+                                )}
                             </div>
                         </div>
 

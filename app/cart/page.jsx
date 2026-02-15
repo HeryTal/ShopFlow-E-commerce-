@@ -11,6 +11,12 @@ const Cart = () => {
   const [isRemoving, setIsRemoving] = useState({});
   const [quantities, setQuantities] = useState({});
 
+  const getProductImages = (product) => {
+    if (Array.isArray(product?.images) && product.images.length > 0) return product.images;
+    if (Array.isArray(product?.image) && product.image.length > 0) return product.image;
+    return [assets.upload_area];
+  };
+
   const cartProducts = Object.keys(cartItems)
     .map(itemId => {
       const product = products.find(p => p._id === itemId);
@@ -144,6 +150,7 @@ const Cart = () => {
                   {cartProducts.map((product) => {
                     const discount = calculateDiscount(product);
                     const isRemovingItem = isRemoving[product._id];
+                    const [productImage] = getProductImages(product);
 
                     return (
                       <div 
@@ -158,7 +165,7 @@ const Cart = () => {
                             <div className="relative flex-shrink-0">
                               <div className="w-32 h-32 bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-4">
                                 <Image
-                                  src={product.image[0]}
+                                  src={productImage}
                                   alt={product.name}
                                   className="w-full h-full object-contain"
                                   width={128}
@@ -357,7 +364,7 @@ const Cart = () => {
                   >
                     <div className="w-full h-32 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg mb-3 p-3">
                       <Image
-                        src={product.image[0]}
+                        src={getProductImages(product)[0]}
                         alt={product.name}
                         className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                         width={200}
