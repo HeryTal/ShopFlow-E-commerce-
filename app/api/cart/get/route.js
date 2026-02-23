@@ -21,6 +21,4 @@ export async function GET(request) {
         return NextResponse.json({ success: false, message: "Failed to fetch cart items" }, { status: 500 });
 
     }
-
-
 }
