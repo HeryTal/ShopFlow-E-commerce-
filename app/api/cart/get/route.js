@@ -13,12 +13,10 @@ export async function GET(request) {
         const cartItems = user?.cartItems || {};
         return NextResponse.json({ success: true, cartItems });
 
-
-
 }
     catch (error) {
-        console.error("Error fetching cart items:", error);
-        return NextResponse.json({ success: false, message: "Failed to fetch cart items" }, { status: 500 });
+        console.error("Error fetching cart item:", error);
+        return NextResponse.json({ success: false, message: "Failed to fetch cart item" }, { status: 500 });
 
     }
 }
