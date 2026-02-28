@@ -49,7 +49,7 @@ export async function POST(request) {
 
         return NextResponse.json({ success: true, cartItems: user.cartItems || {} });
     } catch (error) {
-        console.error("Cart update error:", error);
+        console.error("update error:", error);
         return NextResponse.json({ success: false, message: "Failed to update cart" }, { status: 500 });
     }
 }
