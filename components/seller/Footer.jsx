@@ -54,12 +54,6 @@ const Footer = () => {
             
             {/* Quick Links */}
             <div className="hidden md:flex items-center gap-6 ml-6">
-              <Link href="/privacy" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">
-                Privacy
-              </Link>
-              <Link href="/terms" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">
-                Terms
-              </Link>
               <Link href="/contact" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">
                 Contact
               </Link>
@@ -71,12 +65,6 @@ const Footer = () => {
         {/* Mobile Quick Links */}
         <div className="mt-6 pt-6 border-t border-slate-200 md:hidden">
           <div className="flex justify-center gap-6">
-            <Link href="/privacy" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">
-              Privacy
-            </Link>
-            <Link href="/terms" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">
-              Terms
-            </Link>
             <Link href="/contact" className="text-sm text-slate-600 hover:text-blue-700 transition-colors">
               Contact
             </Link>
