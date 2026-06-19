@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import Footer from "@/components/seller/Footer";
 import Loading from "@/components/Loading";
+import axios from "axios";
 
 // Import des icônes Lucide React
 import { 
@@ -27,7 +28,7 @@ import {
 } from "lucide-react";
 
 const ProductList = () => {
-  const { router, getToken,user } = useAppContext();
+  const { router, getToken, user, currency } = useAppContext();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState("all");

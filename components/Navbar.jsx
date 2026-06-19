@@ -13,6 +13,7 @@ import {
   ShoppingCart, 
   Package, 
   User,
+  Settings,
   Store,
   LogOut,
   Search
@@ -38,6 +39,8 @@ const Navbar = () => {
   const navItems = [
     { href: "/", label: "Home" },
     { href: "/all-products", label: "Shop" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
   ];
 
   // Menu items for user dropdown (en grille 3x2)
@@ -46,6 +49,8 @@ const Navbar = () => {
     { href: "/all-products", label: "Shop", icon: ShoppingBag, color: "text-purple-600" },
     { href: "/cart", label: "Cart", icon: ShoppingCart, color: "text-emerald-600" },
     { href: "/my-orders", label: "Orders", icon: Package, color: "text-amber-600" },
+    { href: "/profile", label: "Profile", icon: User, color: "text-cyan-600" },
+    { href: "/settings", label: "Settings", icon: Settings, color: "text-slate-600" },
     ...(isSeller ? [{ href: "/seller", label: "Seller", icon: Store, color: "text-indigo-600" }] : []),
   ];
 
