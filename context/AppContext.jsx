@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 export const AppContext = createContext();
 
@@ -79,17 +80,18 @@ export const AppContextProvider = (props) => {
         return data;
     }
 
-    const addToCart = async (itemId) => {
+    const addToCart = async (itemId, quantity = 1) => {
+        if (!itemId || quantity < 1) return;
 
         let cartData = structuredClone(cartItems);
         if (cartData[itemId]) {
-            cartData[itemId] += 1;
+            cartData[itemId] += quantity;
         }
         else {
-            cartData[itemId] = 1;
+            cartData[itemId] = quantity;
         }
         setCartItems(cartData);
-        console.log("Produit ajouté au panier");
+        toast.success(quantity > 1 ? `${quantity} items added to your bag` : "Added to your bag");
 
         if (user){
             try {
@@ -133,7 +135,7 @@ export const AppContextProvider = (props) => {
     const getCartCount = () => {
         let totalCount = 0;
         for (const items in cartItems) {
-            if (cartItems[items] > 0) {
+            if (itemInfo && cartItems[items] > 0) {
                 totalCount += cartItems[items];
             }
         }

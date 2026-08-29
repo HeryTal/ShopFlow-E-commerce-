@@ -2,9 +2,12 @@ import React, { useState } from 'react'
 import { assets } from '@/assets/assets'
 import Image from 'next/image';
 import { useAppContext } from '@/context/AppContext';
+import { Heart, ShoppingBag } from "lucide-react";
+import Button from "@/components/ui/Button";
+import Card from "@/components/ui/Card";
 
 const ProductCard = ({ product }) => {
-    const { currency, router } = useAppContext();
+    const { currency, router, addToCart } = useAppContext();
     const [isWishlisted, setIsWishlisted] = useState(false);
 
     const productImages = Array.isArray(product?.images)
@@ -22,16 +25,20 @@ const ProductCard = ({ product }) => {
         : 0;
 
     return (
-        <div
+        <Card
+            role="link"
+            tabIndex={0}
+            aria-label={`View ${product.name}`}
             onClick={() => {
                 router.push('/product/' + product._id);
                 window.scrollTo(0, 0);
             }}
-            className="group relative bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 cursor-pointer w-full"
+            onKeyDown={(event) => { if (event.key === "Enter") router.push('/product/' + product._id); }}
+            className="group relative w-full cursor-pointer overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-raised"
         >
             {/* Discount Badge */}
             {discountPercentage > 0 && (
-                <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                <div className="absolute top-3 left-3 z-10 rounded-full bg-danger px-2 py-1 text-xs font-bold text-white">
                     -{discountPercentage}%
                 </div>
             )}
@@ -42,20 +49,14 @@ const ProductCard = ({ product }) => {
                     e.stopPropagation();
                     setIsWishlisted(!isWishlisted);
                 }}
-                className="absolute top-3 right-3 z-10 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:scale-110 transition-transform"
+                aria-label={isWishlisted ? "Remove from saved items" : "Save item"}
+                className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-surface shadow-card transition-transform hover:scale-105"
             >
-                <svg 
-                    className={`w-4 h-4 ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-slate-500'}`}
-                    fill={isWishlisted ? "currentColor" : "none"}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
+                <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-danger text-danger' : 'text-muted'}`} aria-hidden="true" />
             </button>
 
             {/* Product Image */}
-            <div className="relative h-56 bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
+            <div className="relative h-56 overflow-hidden bg-canvas">
                 <Image
                     src={primaryImage}
                     alt={product.name}
@@ -68,12 +69,12 @@ const ProductCard = ({ product }) => {
             {/* Product Info */}
             <div className="p-4">
                 {/* Category */}
-                <div className="text-xs text-blue-600 font-medium mb-2">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-700">
                     {product.category || 'Electronics'}
                 </div>
 
                 {/* Name */}
-                <h3 className="font-bold text-slate-900 mb-2 line-clamp-1">
+                <h3 className="mb-2 line-clamp-1 font-semibold text-ink">
                     {product.name}
                 </h3>
 
@@ -97,7 +98,7 @@ const ProductCard = ({ product }) => {
                 {/* Price */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <span className="text-xl font-bold text-blue-900">
+                        <span className="text-xl font-bold text-ink">
                             {currency}{offerPrice}
                         </span>
                         {basePrice > 0 && (
@@ -106,18 +107,18 @@ const ProductCard = ({ product }) => {
                             </span>
                         )}
                     </div>
-                    <button
+                    <Button
+                        size="sm"
                         onClick={(e) => {
                             e.stopPropagation();
-                            // Add to cart logic
+                            addToCart(product._id);
                         }}
-                        className="px-3 py-1.5 bg-blue-900 text-white text-sm rounded-lg hover:bg-blue-800 transition-colors"
                     >
-                        Buy
-                    </button>
+                        <ShoppingBag className="h-4 w-4" aria-hidden="true" /> Add
+                    </Button>
                 </div>
             </div>
-        </div>
+        </Card>
     )
 }
 

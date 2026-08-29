@@ -37,7 +37,8 @@ const OrderSummary = () => {
   };
 
   const createOrder = async () => {
-    // Order creation logic
+    // The project has no order API yet; keep the existing confirmation flow explicit.
+    router.push("/order-placed");
   };
 
   // Calculate totals
